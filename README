@@ -1,0 +1,9 @@
+Redcomp - The redcode compiler
+samurai@psych0tik.net
+The idea here is to play a bit with creating a higher level language that compiles down into redcode.  Most likely this will create 
+extremely bloated/inefficient code when "compiled", but it might be fun to play with.
+
+
+Redcomp - version 0.0.1
+
+This is the beginnings of a PoC to see if this is viable/interesting
