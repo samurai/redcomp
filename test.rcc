@@ -1,0 +1,6 @@
+;;this is a test of the higher-level redcode language: rcc
+
+func start()
+{
+	op imp = mov imp, imp+1
+}
