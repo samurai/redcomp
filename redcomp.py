@@ -56,15 +56,19 @@ def buildFunction(code, funcname):
 	##look through for the func name, when finding brackets use the code in between.
 	##the order of the brackets with the other checks is important for getting the right lines
 	for line in code:
+		print line
 		if funccheck in line:
+			print "found func"
 			foundfunc = 1
-		if "}" in line:
-			bracketstatus = 0
-		print bracketstatus
+		if "}" in line and foundfunc:
+			print "end func"
+			bracketstatus = -1
 		print foundfunc
-		if foundfunc and bracketstatus:
+		print bracketstatus
+		if foundfunc and bracketstatus == 1:
 			funccode.append(line)
-		if "{" in line:
+		if "{" in line and foundfunc and bracketstatus != -1:
+			print "start func"
 			bracketstatus = 1
 
 	print funccode	
@@ -76,19 +80,38 @@ def buildFunction(code, funcname):
 	else:
 		redcode = convertCode(funccode)
 		print redcode
-		redcode[0] = "%s: %s" % ( funcname, redcode[0] )
-		writeCode(redcode[0])
-		del(redcode[0])
+		redcode.insert(0, "%s: \n" % ( funcname ))
 		for rline in redcode:
-			writeCode("\t%s" % ( rline ))	
+			writeCode("%s" % ( rline ))	
+
+def buildOpVar(line):
+	rline = line
+	return rline
 
 ##magic happens here
 def convertCode(code):
-	return code
+	tmpcode = []
+	for c in code:
+		if c[0:4] == "var ":
+#			name,value = c.split("=")
+#			name = name.strip()[4:]
+#			tmpcode.insert(0,"%s: %s" % (name, value))
+			pass
+		elif "()" in c and "func " not in c:
+			funcname = c.replace("()","").strip()
+			tmpcode.append("jmp %s ; %s" % (funcname, c) )
+		else:
+			tmpcode.append(c)
+			
+	return tmpcode
 
 ##remove global?
 def writeCode(redcode):
 	global outfile
+	if ":" not in redcode and redcode[0] != "\t":
+		redcode = "\t" + redcode
+	if ":" in redcode and redcode[0] == "\t":
+		redcode = redcode[1:]
 	outfile.write(redcode + "\n")
 
 
@@ -109,12 +132,16 @@ if validateCode(codes) != 0:
 else:
 	##build it
 	print "Building redcode"
+	writeCode("org start\n")
+	funcnames = []
+	##build functions
 	for line in codes:
 		if "func " in line:
 			funcname = line.split("func ")
 			funcname = funcname[1].split("()")
 			funcname = funcname[0]
 			print "Found function %s" % ( funcname )
+			funcnames.append(funcname)
 			buildFunction(codes, funcname)
 
 ##done stuff

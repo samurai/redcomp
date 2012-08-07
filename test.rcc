@@ -1,6 +1,15 @@
 ;;this is a test of the higher-level redcode language: rcc
 
+
+func imp()
+{
+	mov imp, imp+1
+}
+
 func start()
 {
-	op imp = mov imp, imp+1
+	add #1, #1
+	imp()
+	mov 1, 2
 }
+
