@@ -8,8 +8,11 @@ func imp()
 
 func start()
 {
-	add #1, #1
-	imp()
-	mov 1, 2
+	var test = 1
+	test += 3999
+;;	imp()
+	5-=1
+;;	mov 1, 2
+	start()
 }
 

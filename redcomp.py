@@ -78,11 +78,13 @@ def buildFunction(code, funcname):
 	## convert code from rcc to redcode (this probably will be hard?)
 	##then drop it into the file, built as a "function"
 	else:
-		redcode = convertCode(funccode)
+		vars,redcode = convertCode(funccode)
+		print vars
 		print redcode
 		redcode.insert(0, "%s: \n" % ( funcname ))
-		for rline in redcode:
-			writeCode("%s" % ( rline ))	
+#		for rline in redcode:
+#			writeCode("%s" % ( rline ))	
+		return redcode,vars
 
 def buildOpVar(line):
 	rline = line
@@ -91,19 +93,38 @@ def buildOpVar(line):
 ##magic happens here
 def convertCode(code):
 	tmpcode = []
+	vars = []	
 	for c in code:
 		if c[0:4] == "var ":
-#			name,value = c.split("=")
-#			name = name.strip()[4:]
-#			tmpcode.insert(0,"%s: %s" % (name, value))
-			pass
+			name,value = c.split("=")
+			name = name.strip()[4:]
+			value = value.strip()
+			vars.append("%s:\tdat #0, #%s" % (name, value)) ##needs to add these all as a 'header', since dats kill exe
+		elif "+=" in c:
+			name,value = c.split("+=")
+			name = name.strip()
+			value = value.strip()
+			if name.isdigit():
+				name = "#" + name
+			if value.isdigit():
+				value = "#" + value
+			tmpcode.append("\tadd %s, %s" % (value, name))
+		elif "-=" in c:
+			name,value = c.split("-=")
+			name = name.strip()
+			value = value.strip()
+			if name.isdigit():
+				name = "#" + name
+			if value.isdigit():
+				value = "#" + value
+			tmpcode.append("\tsub %s, %s" % (value, name))
 		elif "()" in c and "func " not in c:
 			funcname = c.replace("()","").strip()
 			tmpcode.append("jmp %s ; %s" % (funcname, c) )
 		else:
 			tmpcode.append(c)
 			
-	return tmpcode
+	return (vars,tmpcode)
 
 ##remove global?
 def writeCode(redcode):
@@ -134,6 +155,8 @@ else:
 	print "Building redcode"
 	writeCode("org start\n")
 	funcnames = []
+	vars = []
+	redcode = []
 	##build functions
 	for line in codes:
 		if "func " in line:
@@ -142,7 +165,14 @@ else:
 			funcname = funcname[0]
 			print "Found function %s" % ( funcname )
 			funcnames.append(funcname)
-			buildFunction(codes, funcname)
+			c,v= buildFunction(codes, funcname)
+			redcode  += c
+			vars += v
+
+	for var in vars:
+		writeCode(var)## these all have to be first, as dats kill exe
+	for rc in redcode:
+		writeCode(rc)
 
 ##done stuff
 fh.close()
